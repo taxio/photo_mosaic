@@ -29,10 +29,13 @@ class ImportImages:
         self._metadata.create_all()
 
     def calc_mean(self):
-        self.create_table()
-        image_names = self.get_image_names()
+        self._create_table()
+        image_names = self._get_image_names()
         for img_name in image_names:
-            img = Image.open(img_name)
+            try:
+                img = Image.open(img_name)
+            except OSError as e:
+                continue
             # 透過画像の場合は一度RGBAに変換
             if "transparency" in img.info:
                 img = img.convert("RGBA")
