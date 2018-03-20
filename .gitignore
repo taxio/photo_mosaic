@@ -104,3 +104,4 @@ ENV/
 .DS_Store
 tmp.py
 test/images
+*.sqlite3
