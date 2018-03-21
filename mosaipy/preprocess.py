@@ -42,7 +42,6 @@ class ImportImages:
         n_img = len(image_names)
         pbar = ProgressBar(max_value=len(image_names))
         for idx, img_name in enumerate(image_names):
-            print('{}/{}'.format(idx+1, n_img))
             pbar.update(idx)
             try:
                 img = Image.open(img_name)
