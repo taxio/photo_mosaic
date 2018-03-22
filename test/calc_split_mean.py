@@ -4,10 +4,6 @@ import time
 
 N_SPLIT = 1000
 
-def split_array(ar, n_group):
-    for i_chunk in range(n_group):
-        yield ar[i_chunk * len(ar) // n_group:(i_chunk + 1) * len(ar) // n_group]
-
 if __name__ == '__main__':
     img_name = './images/aqua.JPG'
     img = Image.open(img_name)
@@ -24,5 +20,5 @@ if __name__ == '__main__':
             tmp_mean = np.mean(tmp_mean, axis=0)
             tmp.append(tmp_mean)
 
-        means.append(tmp_mean)
+        means.append(tmp)
 
