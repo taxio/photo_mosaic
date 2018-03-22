@@ -105,3 +105,4 @@ ENV/
 tmp.py
 test/images
 *.sqlite3
+*.png
