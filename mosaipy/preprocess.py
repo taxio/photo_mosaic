@@ -31,6 +31,7 @@ class ImportImages:
     def calc_mean(self):
         self._create_table()
         image_names = self._get_image_names()
+        inserts = list()
         for img_name in image_names:
             try:
                 img = Image.open(img_name)
@@ -41,6 +42,8 @@ class ImportImages:
                 img = img.convert("RGBA")
             img = img.convert("RGB")
             stat = ImageStat.Stat(img)
-            self._images.insert().execute(name=img_name, R=stat.mean[0], G=stat.mean[1], B=stat.mean[2])
+            tmp_insert = [img_name, stat.mean[0], stat.mean[1], stat.mean[2]]
+            inserts.append(tmp_insert)
+            # self._images.insert().execute(name=img_name, R=stat.mean[0], G=stat.mean[1], B=stat.mean[2])
 
 
