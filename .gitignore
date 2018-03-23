@@ -103,7 +103,4 @@ ENV/
 .idea/
 .DS_Store
 tmp.py
-test/images
 *.sqlite3
-*.png
-*.jpg
