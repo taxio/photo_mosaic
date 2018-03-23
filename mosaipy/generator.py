@@ -2,13 +2,12 @@ from PIL import Image, ImageStat
 import numpy as np
 import sqlite3
 from progressbar import ProgressBar
+import mosaipy.util
 
 
 class PhotoMosaicGenerator:
 
-    def __init__(self, target_image: str, materials_db: str):
-        self._target = target_image
-
+    def __init__(self, materials_db: str):
         # データベースから一覧取得
         conn = sqlite3.connect(materials_db)
         c = conn.cursor()
@@ -16,14 +15,14 @@ class PhotoMosaicGenerator:
         self._materials = c.fetchall()
         conn.close()
 
-    def generate(self, n_split: int):
+    def generate(self, target_image_name: str, n_split: int, output_image_name: str, threshold_near=5):
         print('generating photo mosaic...')
 
-        target_image = Image.open(self._target)
+        target_image = Image.open(target_image_name)
         target_image_size = target_image.size
         mat_size = target_image_size[0] // n_split
         target_image = np.array(target_image, 'f')
-        print(self._target, target_image.shape)
+        print(target_image_name, target_image.shape)
 
         pbar = ProgressBar(max_value=n_split*n_split)
         gen_image = Image.new('RGB', target_image_size, 'white')
@@ -35,56 +34,38 @@ class PhotoMosaicGenerator:
                 tmp_mean = np.mean(h, axis=0)
                 tmp_mean = np.mean(tmp_mean, axis=0)
                 # 近似画像取得
-                mat_img = self.get_near_image(tmp_mean[0], tmp_mean[1], tmp_mean[2])
+                mat_img = self.get_near_image(tmp_mean[0], tmp_mean[1], tmp_mean[2], threshold=threshold_near)
                 # 近似画像を指定位置に貼り付け
                 mat_image = Image.open(mat_img)
-                if "transparency" in mat_image.info:
-                    mat_image = mat_image.convert("RGBA")
-                mat_image = mat_image.convert("RGB")
-                mat_image = self.trim_into_square(mat_image)
+                mat_image = mosaipy.util.convert_to_rgb_image(mat_image)
+                mat_image = mosaipy.util.trim_into_square(mat_image)
                 mat_image = mat_image.resize((mat_size, mat_size))
                 gen_image.paste(mat_image, (n_v*mat_size, n_h*mat_size))
                 # print(n_v, n_h, mat_img, mat_image.size)
                 pbar.update(n_v*n_split+n_h)
 
-        gen_image.save('generated.png')
-                
+        gen_image.save(output_image_name)
 
-    def trim_into_square(self, img):
-        square_size = min(img.size)
-        width, height = img.size
-
-        if width > height:
-            top = 0
-            bottom = square_size
-            left = (width - square_size) / 2
-            right = left + square_size
-            box = (left, top, right, bottom)
-        else:
-            left = 0
-            right = square_size
-            top = (height - square_size) / 2
-            bottom = top + square_size
-            box = (left, top, right, bottom)
-
-        img = img.crop(box)
-
-        thumbnail_size = (square_size, square_size)
-        img.thumbnail(thumbnail_size)
-
-        return img
-
-
-    def get_near_image(self, r, g, b):
+    def get_near_image(self, r, g, b, threshold):
+        """
+        指定のRGB値からもっとも近い画像を返す
+        しきい値内に収まっている画像が複数存在する場合はランダムで返す
+        """
 
         base_point = np.array([r, g, b])
-        buf_calc = list()
+        candidates = list()
         for m in self._materials:
             m_point = np.array([m[2], m[3], m[4]])
             diff = np.linalg.norm(base_point-m_point)
-            buf_calc.append([m[1], diff])
+            candidates.append([m[1], diff])
 
-        # ソート
-        buf_calc.sort(key=lambda x:x[1])
-        return buf_calc[0][0]
+        candidates.sort(key=lambda x:x[1])
+
+        most_near_diff = candidates[0][1]
+        for idx, m in enumerate(candidates):
+            if (m[1]-most_near_diff) > threshold:
+                break
+        if idx == 0:
+            idx = 1
+        return candidates[np.random.randint(idx)][0]
 
