@@ -2,7 +2,7 @@ from PIL import Image, ImageStat
 import numpy as np
 import sqlite3
 from progressbar import ProgressBar
-import mosaipy.util
+import photo_mosaic.util
 
 
 class PhotoMosaicGenerator:
@@ -37,8 +37,8 @@ class PhotoMosaicGenerator:
                 mat_img = self.get_near_image(tmp_mean[0], tmp_mean[1], tmp_mean[2], threshold=threshold_near)
                 # 近似画像を指定位置に貼り付け
                 mat_image = Image.open(mat_img)
-                mat_image = mosaipy.util.convert_to_rgb_image(mat_image)
-                mat_image = mosaipy.util.trim_into_square(mat_image)
+                mat_image = photo_mosaic.util.convert_to_rgb_image(mat_image)
+                mat_image = photo_mosaic.util.trim_into_square(mat_image)
                 mat_image = mat_image.resize((mat_size, mat_size))
                 gen_image.paste(mat_image, (n_v*mat_size, n_h*mat_size))
                 # print(n_v, n_h, mat_img, mat_image.size)
