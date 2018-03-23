@@ -5,6 +5,8 @@ import photo_mosaic.util
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
+from sqlalchemy.orm import sessionmaker
+
 
 class MaterialImage(Base):
     
@@ -31,23 +33,26 @@ class ImportImages:
         Base.metadata.drop_all(self._engine)
 
     def calc_mean(self):
-        image_names = self._get_image_names()
-        n_img = len(image_names)
-        # inserts = list()
+        image_names = photo_mosaic.util.get_image_names(self._img_dir_path)
         print('calculation images start')
+        Session = sessionmaker(bind=self._engine)
+        session = Session()
         pbar = ProgressBar(max_value=len(image_names))
-        for idx, img_name in enumerate(image_names):
+        for idx, image_name in enumerate(image_names):
             pbar.update(idx)
             try:
-                img = Image.open(img_name)
+                img = Image.open(image_name)
             except OSError as e:
                 continue
             img = photo_mosaic.util.convert_to_rgb_image(img)
             img = photo_mosaic.util.trim_into_square(img)
             stat = ImageStat.Stat(img)
-            # tmp_insert = [img_name, stat.mean[0], stat.mean[1], stat.mean[2]]
-            # inserts.append(tmp_insert)
-            self._images.insert().execute(name=img_name, R=stat.mean[0], G=stat.mean[1], B=stat.mean[2])
+
+            new_material = MaterialImage(name=image_name, R=stat.mean[0], G=stat.mean[1], B=stat.mean[2])
+            session.add(new_material)
+
+        session.commit()
+        session.close()
         pbar.finish()
         print('finish')
 

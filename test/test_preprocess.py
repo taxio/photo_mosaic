@@ -14,6 +14,6 @@ class TestPreprocess(TestCase):
         self.import_image.drop_table()
 
     def test_calc_mean(self):
-        pass
+        self.import_image.calc_mean()
 
 
