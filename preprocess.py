@@ -3,30 +3,34 @@ from PIL import Image, ImageStat
 from progressbar import ProgressBar
 import photo_mosaic.util
 
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
+
+class MaterialImage(Base):
+    
+    __tablename__ = 'materials'
+
+    id_ = Column(Integer, primary_key=True)
+    name = Column(String)
+    R = Column(REAL)
+    G = Column(REAL)
+    B = Column(REAL)
+
+    def __repr__(self):
+        return '<Material(name=\'{}\', (R, G, B)=({}, {}, {}))>'.format(name, R, G, B)
+
 class ImportImages:
 
     def __init__(self, dbname: str, img_dir_path: str):
         self._dbname = dbname
         self._img_dir_path = img_dir_path
+        self._engine = create_engine('sqlite:///'+dbname, echo=False)
+        Base.metadata.create_all(self._engine)
 
-    def _create_table(self):
-        self._engine = create_engine('sqlite:///'+self._dbname, echo=False)
-        self._metadata = MetaData()
-        self._metadata.bind = self._engine
-
-        self._images = Table(
-                'images', self._metadata,
-                Column('id', Integer, primary_key=True),
-                Column('name', String),
-                Column('R', REAL),
-                Column('G', REAL),
-                Column('B', REAL)
-                )
-
-        self._metadata.create_all()
+    def drop_table(self):
+        Base.metadata.drop_all(self._engine)
 
     def calc_mean(self):
-        self._create_table()
         image_names = self._get_image_names()
         n_img = len(image_names)
         # inserts = list()
