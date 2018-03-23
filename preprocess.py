@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, REAL
 from PIL import Image, ImageStat
 from progressbar import ProgressBar
-import mosaipy.util
+import photo_mosaic.util
 
 class ImportImages:
 
@@ -38,8 +38,8 @@ class ImportImages:
                 img = Image.open(img_name)
             except OSError as e:
                 continue
-            img = mosaipy.util.convert_to_rgb_image(img)
-            img = mosaipy.util.trim_into_square(img)
+            img = photo_mosaic.util.convert_to_rgb_image(img)
+            img = photo_mosaic.util.trim_into_square(img)
             stat = ImageStat.Stat(img)
             # tmp_insert = [img_name, stat.mean[0], stat.mean[1], stat.mean[2]]
             # inserts.append(tmp_insert)
