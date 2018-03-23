@@ -47,4 +47,3 @@ class ImportImages:
         pbar.finish()
         print('finish')
 
-
