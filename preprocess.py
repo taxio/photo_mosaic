@@ -23,36 +23,51 @@ class MaterialImage(Base):
 
 class ImportImages:
 
-    def __init__(self, dbname: str, img_dir_path: str):
+    def __init__(self, dbname: str):
         self._dbname = dbname
-        self._img_dir_path = img_dir_path
         self._engine = create_engine('sqlite:///'+dbname, echo=False)
         Base.metadata.create_all(self._engine)
+        Session = sessionmaker(bind=self._engine)
+        self._session = Session()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close_session()
+
+    def close_session(self):
+        self._session.close()
 
     def drop_table(self):
         Base.metadata.drop_all(self._engine)
+    
+    def insert_image(self, img_name):
+        new_material = self.calc_mean(img_name)
+        if new_material:
+            self._session.add(new_material)
+            self._session.commit()
 
-    def calc_mean(self):
-        image_names = photo_mosaic.util.get_image_names(self._img_dir_path)
+    def calc_mean(self, img_name):
+        try:
+            img = Image.open(img_name)
+        except OSError as e:
+            return None
+        img = photo_mosaic.util.convert_to_rgb_image(img)
+        img = photo_mosaic.util.trim_into_square(img)
+        stat = ImageStat.Stat(img)
+
+        new_material = MaterialImage(name=img_name, R=stat.mean[0], G=stat.mean[1], B=stat.mean[2])
+        return new_material
+
+    def calc_all(self, img_dir_path: str):
+        image_names = photo_mosaic.util.get_image_names(img_dir_path)
         print('calculation images start')
-        Session = sessionmaker(bind=self._engine)
-        session = Session()
         pbar = ProgressBar(max_value=len(image_names))
         for idx, image_name in enumerate(image_names):
             pbar.update(idx)
-            try:
-                img = Image.open(image_name)
-            except OSError as e:
-                continue
-            img = photo_mosaic.util.convert_to_rgb_image(img)
-            img = photo_mosaic.util.trim_into_square(img)
-            stat = ImageStat.Stat(img)
+            new_material = self.calc_mean(image_name)
+            if new_material:
+                self._session.add(new_material)
 
-            new_material = MaterialImage(name=image_name, R=stat.mean[0], G=stat.mean[1], B=stat.mean[2])
-            session.add(new_material)
-
-        session.commit()
-        session.close()
+        self._session.commit()
         pbar.finish()
         print('finish')
 
