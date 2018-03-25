@@ -18,9 +18,24 @@ pip install -r requirements.txt
 
 ## Usage
 
-WIP
+```Python
+from photo_mosaic import PhotoMosaicGenerator, PreProcess
 
+if __name__ == '__main__':
 
+    pre = PreProcess(dbname='./test.sqlite3')
+    pre.calc_all('./images')
+
+    gen = PhotoMosaicGenerator(materials_db='./test.sqlite3')
+    gen.generate(
+            target_image_name='target.png',
+            output_image_name='output.png',
+            n_split=4)
+```
+
+指定ディレクトリ以下にある画像を全て読み込み，そのRGB平均値をSQLiteデータベースに落とし込みます．
+
+データベースには各画像へのパスが登録されているため，前処理後に画像を移動させると正しく計算することができません．
 
 ## License
 
