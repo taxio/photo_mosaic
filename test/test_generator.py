@@ -1,12 +1,12 @@
 from unittest import TestCase
 from nose.tools import eq_
 
-from photo_mosaic import PhotoMosaicGenerator, ImportImages
+from photo_mosaic import PhotoMosaicGenerator, PreProcess 
 
 class TestGenerator(TestCase):
 
     def setUp(self):
-        self.pre = ImportImages('./test/test.sqlite3')
+        self.pre = PreProcess('./test/test.sqlite3')
 
     def tearDown(self):
         self.pre.drop_table()

@@ -1,6 +1,5 @@
 from PIL import Image, ImageStat
 import numpy as np
-import sqlite3
 from progressbar import ProgressBar
 
 import photo_mosaic.util
