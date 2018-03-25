@@ -31,7 +31,7 @@ class TestPreprocess(TestCase):
         c = conn.cursor()
         c.execute('select * from materials')
         mats = c.fetchall()
-        eq_(6, len(mats))
+        eq_(7, len(mats))
         conn.close()
 
     def test_insert_image(self):
