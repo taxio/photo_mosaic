@@ -4,7 +4,7 @@ import photo_mosaic.util
 from photo_mosaic import dbmanager
 
 
-class ImportImages:
+class PreProcess:
 
     def __init__(self, dbname: str):
         self._db = dbmanager.DBManager(dbname=dbname)
